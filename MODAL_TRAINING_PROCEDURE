@@ -1,0 +1,247 @@
+  ********            **            **********        **     
+ **//////            ****          /////**///        /**     
+/**                 **//**             /**           /**     
+/*********         **  //**            /**           /**     
+////////**        **********           /**           /**     
+       /**   **  /**//////**   **      /**       **  /**   **
+ ********   /**  /**     /**  /**      /**      /**  /**  /**
+////////    //   //      //   //       //       //   //   // 
+
+-----------------------------------------------------------------
+
+  ********   **   ****     ****           **      **
+ **//////   /**  /**/**   **/**          /**     /**
+/**         /**  /**//** ** /**          /**     /**
+/*********  /**  /** //***  /**   *****  //**    ** 
+////////**  /**  /**  //*   /**  /////    //**  **  
+       /**  /**  /**   /    /**            //****   
+ ********   /**  /**        /**             //**    
+////////    //   //         //               //     
+
+------------------------------------------------------------------
+
+# 💡 Road Detection Model – Training Procedure  
+YOLO Segmentation | Local Training + Google Colab  
+──────────────────────────────────────────────────────
+
+# 🔰 ASCII PROJECT WORKFLOW DIAGRAM
+
+```
+           ┌────────────────────────┐
+           │   Capture Road Data    │
+           │ (Images + Videos)      │
+           └────────────┬───────────┘
+                        │
+                        ▼
+            ┌────────────────────────┐
+            │ Extract Frames From     │
+            │     Video (Python)     │
+            └────────────┬───────────┘
+                        │
+                        ▼
+         ┌───────────────────────────────┐
+         │  Label Using Label-Studio      │
+         │  (Object Segmentation - YOLO)  │
+         └──────────────┬────────────────┘
+                        │
+                        ▼
+        ┌──────────────────────────────────┐
+        │ Export YOLO Dataset (images + labels) │
+        └──────────────────┬─────────────────┘
+                           │
+                           ▼
+        ┌──────────────────────────────────┐
+        │ Create YOLO Directory Structure   │
+        └──────────────────┬─────────────────┘
+                           │
+                           ▼
+            ┌────────────────────────┐
+            │   Train YOLO Model     │
+            │ (Local or Colab GPU)   │
+            └────────────┬───────────┘
+                        │
+                        ▼
+           ┌──────────────────────────┐
+           │ Predict Road Segmentation│
+           └──────────────────────────┘
+```
+
+---
+
+# 📁 Directory Structure (ASCII)
+
+```
+dataset/
+ ├── images/
+ │    ├── train/
+ │    └── val/
+ ├── labels/
+ │    ├── train/
+ │    └── val/
+```
+
+---
+
+# 📝 1. Collect Dataset  
+Capture **road videos/images** in different environments.
+
+---
+
+# 🎞️ 2. Extract Images From Video  
+
+```bash
+python video_to_image.py
+```
+
+---
+
+# 🏷️ 3. Label the Road  
+Use **Label-Studio**  
+→ “Object Segmentation”  
+→ Label only the **road** region.
+
+---
+
+# 📦 4. Export YOLO Segmentation Format  
+You will get:
+
+```
+images/
+labels/
+```
+
+---
+
+# 📚 5. Create YOLO Dataset Structure  
+
+```
+dataset/
+ ├── images/
+ │    ├── train/
+ │    └── val/
+ ├── labels/
+ │    ├── train/
+ │    └── val/
+```
+
+---
+
+# ✂️ 6. Split Dataset (80/20)
+
+- 80% → `train`
+- 20% → `val`
+- Same split for labels.
+
+---
+
+# ⚙️ 7. Create `data.yaml`
+
+```yaml
+path: ./dataset
+train: images/train
+val: images/val
+
+nc: 1
+names: 
+  - road
+```
+
+---
+
+# 🚀 8. Train the Model (Locally)
+
+```bash
+yolo segment train data=data.yaml model=yolov8s-seg.pt epochs=50 imgsz=640
+```
+
+---
+
+# ▶️ 9. Run Prediction
+
+```bash
+yolo segment predict model=runs/segment/train/weights/best.pt source=./test_images/
+```
+
+---
+
+# ☁️🔥 Training Using Google Colab + Google Drive
+
+## ASCII Pipeline
+
+```
+ Google Drive  
+      │
+      ▼
+Upload Dataset  
+      │
+      ▼
+Mount Drive in Colab  
+      │
+      ▼
+Install YOLO  
+      │
+      ▼
+Train With GPU  
+      │
+      ▼
+Generate Results
+```
+
+---
+
+## 📂 Step 1 — Upload Dataset to Google Drive
+
+```
+MyDrive/
+ └── road_detection/
+      ├── dataset/
+      ├── data.yaml
+      └── test_images/
+```
+
+---
+
+## 🔗 Step 2 — Mount Google Drive
+
+```python
+from google.colab import drive
+drive.mount('/content/drive')
+```
+
+---
+
+## 📦 Step 3 — Install YOLO
+
+```bash
+pip install ultralytics
+```
+
+---
+
+## 📁 Step 4 — Change Directory
+
+```bash
+cd /content/drive/MyDrive/road_detection/
+```
+
+---
+
+## 🚀 Step 5 — Train Model on Colab GPU
+
+```bash
+yolo segment train data=data.yaml model=yolov8s-seg.pt epochs=50 imgsz=640
+```
+
+---
+
+## 🎯 Step 6 — Run Prediction on Colab
+
+```bash
+yolo segment predict \
+  model=/content/drive/MyDrive/road_detection/runs/segment/train/weights/best.pt \
+  source=/content/drive/MyDrive/road_detection/test_images/
+```
+
+---
+
+
